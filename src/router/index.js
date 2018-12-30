@@ -1,0 +1,1 @@
+export {initRouter, getRouter} from './routers';
