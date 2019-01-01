@@ -1,13 +1,33 @@
 import Vue from 'vue';
 import {initRouter} from "../router";
-
-const router = initRouter(Vue);
+import {initStore} from "../store";
+import {initPrompt} from "./initPrompt";
+import {configVue} from "../utils/configVue";
+import {initToVue} from "../utils/loading";
 
 // 根Vue实例
 let rootVue;
 
-document.addEventListener('DOMContentLoaded', function () {
+/**
+ * 初始化界面
+ */
+export function initRoot(status) {
+  configVue(Vue);
+  initPrompt(Vue);
+  initToVue(Vue);
+
   rootVue = new Vue({
-    router,
-  }).$mount('#root');
-});
+    data: {
+      status
+    },
+    router: initRouter(Vue),
+    store: initStore(Vue),
+    template: `
+      <div id="root">
+        <router-view/>
+      </div>
+    `
+  }).$mount();
+
+  document.body.appendChild(rootVue.$el);
+}

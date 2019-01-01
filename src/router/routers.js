@@ -1,6 +1,12 @@
 import VueRouter from 'vue-router';
 import {initRouterFilter} from "./filters";
-import {MainPage} from '../pages/MainPage';
+import {
+  MainPage,
+  RewardDetailPage,
+  PersonalHomePage,
+  PersonalInformation,
+  RewardRecord
+} from '../pages';
 
 const routes = [{
   path: '',
@@ -8,7 +14,26 @@ const routes = [{
 }, {
   path: '/main',
   component: MainPage,
-  meta: {title: '我好看么？'}
+  meta: {title: '我好看么'}
+}, {
+  path: '/reward',
+  component: RewardDetailPage,
+  meta: {title: '打赏一下'}
+}, {
+  path: '/personalHome',
+  component: PersonalHomePage,
+  children: [{
+    path: '',
+    redirect: 'info'
+  }, {
+    path: 'info',
+    component: PersonalInformation,
+    meta: {title: '个人资料'}
+  }, {
+    path: 'reward',
+    component: RewardRecord,
+    meta: {title: '打赏记录'}
+  }]
 }];
 
 

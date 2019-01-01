@@ -8,7 +8,8 @@ module.exports = webpackMerge(baseConfig, {
   entry: `./${entryFile}`,
   mode: 'development',
   output: {
-    filename: "js/main.bundle.js"
+    filename: "js/[name].bundle.js",
+    chunkFilename: 'js/[name].chunk.js'
   },
   devtool: 'source-map',
   devServer: {

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-dev-server --open --hot --inline --config config/webpack.dev.config.js",
+    "stage": "cross-env NODE_ENV=stage gulp build --gulpfile config/build.js",
     "build": "cross-env NODE_ENV=production gulp build --gulpfile config/build.js"
   },
   "devDependencies": {
@@ -43,6 +44,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
+    "normalize.css": "^8.0.1",
     "vue": "^2.5.21",
     "vue-router": "^3.0.2",
     "vuex": "^3.0.1"
