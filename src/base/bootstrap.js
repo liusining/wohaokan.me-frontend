@@ -26,7 +26,9 @@ export function initRoot(status) {
     store: initStore(Vue),
     template: `
       <div id="root">
-        <router-view/>
+        <keep-alive include="MainPage">
+          <router-view/>
+        </keep-alive>
       </div>
     `
   }).$mount();

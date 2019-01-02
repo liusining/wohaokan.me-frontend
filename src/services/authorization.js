@@ -15,6 +15,7 @@ export function saveAuthCode(code) {
   return take.post(`/login`, {
     code
   }, {
+    // 是否不需要添加X-Session-Key头
     noAuth: true
   });
 }

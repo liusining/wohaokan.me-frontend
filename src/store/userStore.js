@@ -87,7 +87,7 @@ export const user = {
       user_id,
       url
     }) {
-      getLikeUser(user_id).then(({result}) => {
+      return getLikeUser(user_id).then(({result}) => {
         commit('saveLikeUser', {
           ...result,
           url
