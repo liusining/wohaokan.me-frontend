@@ -1,6 +1,7 @@
 <template>
   <div class="my-button" :class="{
-    'my-button--special':!plain
+    'my-button--special': !plain,
+    'my-button--so-big': big
   }" @click="$emit('click')">
     <slot></slot>
   </div>
@@ -11,6 +12,10 @@
     name: 'MyButton',
     props: {
       plain: {
+        type: Boolean,
+        default: false
+      },
+      big: {
         type: Boolean,
         default: false
       }
@@ -32,9 +37,13 @@
     text-align: center;
 
     &--special {
-      background-image: linear-gradient(135deg, #E53F24 0%, #F76B1C 100%);
+      background-image: linear-gradient(135deg, #E53F24 0%, $primary-color 100%);
       box-shadow: 0 2px 6px 0 rgba(255, 128, 48, 0.20);
       color: $white-color;
+    }
+
+    &--so-big {
+      padding: 12px 35px;
     }
   }
 

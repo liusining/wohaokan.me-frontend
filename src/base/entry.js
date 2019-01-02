@@ -3,7 +3,7 @@ import {authorization, saveAuthCode} from "../services/authorization";
 import {resolveSearch} from "../utils/browserHelper";
 import {initRoot} from "./bootstrap";
 import {LOAD_STATUS} from "../utils/constants";
-import {initLoading, hideLoading} from "../utils/loading";
+import {initLoading, hideLoading} from "./loading";
 
 const search = resolveSearch();
 
@@ -20,12 +20,10 @@ document.addEventListener('DOMContentLoaded', function () {
       promiseList.push(saveAuthCode(code));
     }
 
-    Promise.all(promiseList).then(([{initRoot}, result]) => {
-      hideLoading();
-      let data;
+    Promise.all(promiseList).then(([{initRoot}, data]) => {
+      hideLoading(true);
 
-      if (result) {
-        data = result.data;
+      if (data) {
         saveAuth(data.result.session_key);
       }
 

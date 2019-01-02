@@ -2,7 +2,7 @@ const AUTH_SUCCESS_CODE = '__AUTH_SUCCESS_CODE';
 
 // 判断用户是否已授权
 export function isAuth() {
-  return !!getAuth();
+  return getAuth() && getAuth().toString().toLowerCase() !== "undefined";
 }
 
 // 保存登陆信息

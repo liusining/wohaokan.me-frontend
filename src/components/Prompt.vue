@@ -45,13 +45,13 @@
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 200;
 
     &__shadow {
       opacity: 0.5;
       background: $black-color;
       width: 100%;
       height: 100%;
-      z-index: 10;
     }
 
     &__container {

@@ -2,22 +2,21 @@
   <div class="reward-detail">
     <page-header title="好看" :show-back="false"></page-header>
 
-    <image-frame style="padding:20px;" :img="currImg"></image-frame>
+    <image-frame style="padding:20px;" :img="likeUser.url"></image-frame>
 
     <div class="reward-detail__info">
       <div class="reward-detail__info-title">
-        Hi，我是Daisy
-        <smart-prompt title="21">
-          <img src="../assets/images/nv@2x.png"/>
+        Hi，我是{{likeUser.name}}
+        <smart-prompt :title="likeUser.age">
+          <img v-if="likeUser.gender === 'Female'" src="../assets/images/nv@2x.png"/>
+          <img v-else src="../assets/images/nan@2x.png"/>
         </smart-prompt>
-        <smart-prompt title="27">
+        <smart-prompt :title="likeUser.likes">
           <img src="../assets/images/zan@2x.png"/>
         </smart-prompt>
       </div>
 
-      <div class="reward-detail__info-content">
-        我喜欢哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈
-      </div>
+      <div class="reward-detail__info-content">{{likeUser.description || "暂无"}}</div>
     </div>
 
     <div class="shadow-btns-container">
@@ -28,15 +27,21 @@
           <div class="reward-detail__big-btn__eos">0.1 EOS</div>
           <div class="reward-detail__info-text">打赏并获取交友信息</div>
         </my-button>
-        <my-button class="my-button__circle" :plain="true"><img src="../assets/images/shoucang@2x.png"/>
+        <my-button class="my-button__circle" :plain="true" @click="collect = !collect"><img
+            :src="collect ? require('../assets/images/shoucang2@2x.png') : require('../assets/images/shoucang@2x.png')"/>
         </my-button>
       </template>
 
       <template v-else>
         <my-button class="my-button--big" :plain="true" @click="backToHome">查看其他人</my-button>
-        <my-button class="reward-detail__copy-btn my-button--big" @click="copyMixinID" :plain="true">
+        <!-- input不可隐藏，否则会无法复制成功 -->
+        <input id="rewardDetailPageCopyInput" type="text" value="123456"
+               style="position:fixed;top:9999px;left:9999px;z-index:10000;"/>
+        <my-button class="reward-detail__copy-btn my-button--big" :plain="true"
+                   data-clipboard-target="#rewardDetailPageCopyInput" data-clipboard-action="copy">
           <div class="reward-detail__copy-btn__mixin">Mixin ID 37892734</div>
-          <div class="reward-detail__info-text">点击复制</div>
+          <div class="reward-detail__info-text">点击复制
+          </div>
         </my-button>
       </template>
     </div>
@@ -48,6 +53,8 @@
   import MyButton from "../components/MyButton";
   import SmartPrompt from "../components/SmartPrompt";
   import ImageFrame from "../components/ImageFrame";
+  import ClipboardJS from 'clipboard';
+  import {mapState} from 'vuex';
 
   export default {
     name: 'RewardDetailPage',
@@ -59,11 +66,16 @@
     },
     data() {
       return {
-        currImg: require('../assets/images/1.jpg'),
+        // Todo 收藏状态，只是做了一个前端的假状态，因为可能没时间做，如果有时间再优化
+        collect: false,
+        clipboard: null,
         // Todo 如果已打赏该人，则再次进入时，应该直接为打赏成功的状态吧？
         // 是否打赏成功
         isRewardSuccess: false
       }
+    },
+    computed: {
+      ...mapState('user', ['likeUser'])
     },
     watch: {
       isRewardSuccess() {
@@ -80,17 +92,29 @@
       // 打赏eos
       reward() {
         this.isRewardSuccess = true;
-      },
-      // 复制mixin ID
-      copyMixinID() {
-        this.$prompt({
-          content: 'Mixin ID已复制到剪切板',
-          button: '知道了'
+        let clipboard = this.clipboard = this.clipboard || new ClipboardJS('.reward-detail__copy-btn');
+
+        clipboard.on('success', (e) => {
+          this.$prompt({
+            content: 'Mixin ID已复制到剪切板',
+            button: '知道了'
+          });
+          e.clearSelection();
+        });
+
+        clipboard.on('error', (e) => {
+          this.$prompt({
+            content: '复制失败，请手动记录',
+            button: '知道了'
+          });
         });
       },
       backToHome() {
         this.$router.push('/main');
       }
+    },
+    destroyed() {
+      this.clipboard && this.clipboard.destroy();
     }
   };
 </script>

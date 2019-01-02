@@ -1,5 +1,6 @@
 import {fetchImages} from "../services/images";
 import {EVENT_NAME, eventManager} from "../utils/eventManager";
+import {IMAGE_LOAD_STATUS} from "../utils/constants";
 
 /**
  * 当前登陆用户的信息
@@ -31,18 +32,11 @@ export const mainPage = {
     setImageList(state, newList) {
       state.imageList = [...state.imageList, ...newList];
     },
-    setImageLoaded(state, {
-      error,
-      index
+    setImageLoadStatus(state, {
+      index,
+      loadStatus
     }) {
-      let copy = [...state.imageList];
-      // 如果加载图片时出错，则直接删除图片
-      if (error) {
-        state.imageList = copy.splice(index, 1);
-      } else {
-        copy[index].isLoaded = true;
-        state.imageList = copy;
-      }
+      state.imageList[index].loadStatus = loadStatus;
     }
   },
   actions: {
@@ -50,15 +44,12 @@ export const mainPage = {
      * 获取images url列表
      * @param state
      * @param commit
+     * @param shouldLoading 是否应该显示loading图
      */
-    fetchImageURLList({state: {imageLoadingInfo: {isLoadingImage, currPage}}, commit}) {
-      // Todo isLoadingImage不可以这么处理，因为需要同时加载多张图片，比如在初始化时。
+    fetchImageURLList({state: {imageLoadingInfo: {isLoadingImage, currPage}}, commit}, {shouldLoading} = {}) {
       if (isLoadingImage) {
-        // Todo 现在只是简单的返回一个正在加载的状态
         return Promise.resolve({
-          data: {
-            isLoading: true
-          }
+          isLoading: true
         });
       } else {
         commit('setImageLoadingInfo', {
@@ -66,22 +57,17 @@ export const mainPage = {
           isLoadingImage: true
         });
 
-        return fetchImages(currPage).then((result) => {
+        return fetchImages(currPage, shouldLoading).then(({result: {images}}) => {
           commit('setImageLoadingInfo', {
             isLoadingImage: false
           });
 
-          let images;
-
-          if (result.status === 200) {
-            images = result.data.result.images;
-            commit('setImageList', images.map((image) => {
-              return {
-                ...image,
-                isLoaded: false
-              }
-            }));
-          }
+          commit('setImageList', images.map((image) => {
+            return {
+              ...image,
+              loadStatus: IMAGE_LOAD_STATUS.INIT
+            }
+          }));
         });
       }
     },
@@ -96,6 +82,7 @@ export const mainPage = {
     fetchImages({state, commit, dispatch}, {amount}) {
       const {currLoadedIndex, isLoadingRealImage} = state.imageLoadingInfo;
 
+      // Todo 是否应该允许一次加载多个图片？
       if (!isLoadingRealImage) {
         commit('setImageLoadingInfo', {
           isLoadingRealImage: true,
@@ -103,11 +90,18 @@ export const mainPage = {
         });
 
         state.imageList.slice(currLoadedIndex, currLoadedIndex + amount).forEach((image, i) => {
+          let index = i + currLoadedIndex;
+
           commit('setImageLoadingInfo', {
             isLoadingRealImage: false
           });
+
+          commit('setImageLoadStatus', {
+            index: index,
+            loadStatus: IMAGE_LOAD_STATUS.LOADING
+          });
+
           let imageOb = new Image();
-          let index = i + currLoadedIndex;
           let timeoutId;
           let isTimeout = false;
           imageOb.src = image.url;
@@ -116,7 +110,7 @@ export const mainPage = {
           if (imageOb.complete) {
             dispatch('fetchImageSuccess', {
               index,
-              url: image.url
+              image
             });
           } else {
             imageOb.onload = function () {
@@ -124,7 +118,7 @@ export const mainPage = {
                 clearTimeout(timeoutId);
                 dispatch('fetchImageSuccess', {
                   index,
-                  url: image.url
+                  image
                 });
               }
             };
@@ -154,14 +148,14 @@ export const mainPage = {
      *
      * @param commit
      * @param index
-     * @param url
+     * @param image
      */
-    fetchImageSuccess({commit}, {index, url}) {
-      commit('setImageLoaded', {
+    fetchImageSuccess({commit}, {index, image}) {
+      commit('setImageLoadStatus', {
         index,
-        error: false
+        loadStatus: IMAGE_LOAD_STATUS.LOADED
       });
-      eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, index, url, false)
+      eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, index, image, false)
     },
     /**
      * 抓取真实图片失败后的回调函数
@@ -170,9 +164,9 @@ export const mainPage = {
      * @param index
      */
     fetchImageError({commit}, {index}) {
-      commit('setImageLoaded', {
+      commit('setImageLoadStatus', {
         index,
-        error: true
+        loadStatus: IMAGE_LOAD_STATUS.ERROR
       });
       eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, index, '', true);
     }

@@ -1,5 +1,4 @@
-import axios from 'axios';
-
+import {take} from "./Request";
 // Todo Hock
 let images = [
   'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=368766412,3699396705&fm=26&gp=0.jpg',
@@ -35,6 +34,8 @@ let images = [
 //   });
 // }
 
-export function fetchImages(page) {
-  return axios.get(`get_images?page=${page}`);
+export function fetchImages(page, shouldLoading) {
+  return take.get(`get_images?page=${page}`, {
+    shouldLoading
+  });
 }

@@ -1,7 +1,9 @@
 <template>
   <div class="page-title">
-    <img v-if="showBack" src="../assets/images/fanhui@2x.png"/>
-    {{title}}
+    <slot>
+      <img v-if="showBack" src="../assets/images/fanhui@2x.png" @click="back"/>
+      {{title}}
+    </slot>
   </div>
 </template>
 
@@ -14,6 +16,11 @@
         default: true
       },
       title: String
+    },
+    methods: {
+      back() {
+        this.$router.back();
+      }
     }
   }
 </script>

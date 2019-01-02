@@ -3,12 +3,12 @@
     <block-container>
       <div class="reward-record__data">
         <div>
-          <div class="reward-record__data-result">45</div>
+          <div class="reward-record__data-result">{{loginUserInfo.rank}}</div>
           <label>当前排名</label>
         </div>
 
         <div>
-          <div class="reward-record__data-result">0.0</div>
+          <div class="reward-record__data-result">{{loginUserInfo.income}}</div>
           <label>收到打赏(EOS)</label>
         </div>
       </div>
@@ -16,21 +16,13 @@
 
     <block-container class="reward-record__imgs-container">
       <div class="reward-record__list-title">
-        <span>已经打赏 5 人</span>
-        <span>（3位小哥哥，2位小姐姐）</span>
+        <span>已经打赏 {{tipTransations.count}} 人</span>
+        <span>（{{tipTransations.to_boy}}位小哥哥，{{tipTransations.to_girl}}位小姐姐）</span>
       </div>
       <div class="reward-record__imgs-list">
-        <div class="reward-record__imgs-list__row clear-both">
-          <image-frame :img="currImg" class="f-left"></image-frame>
-          <image-frame :img="currImg" class="f-right"></image-frame>
-        </div>
-        <div class="reward-record__imgs-list__row clear-both">
-          <image-frame :img="currImg" class="f-left"></image-frame>
-          <image-frame :img="currImg" class="f-right"></image-frame>
-        </div>
-        <div class="reward-record__imgs-list__row clear-both">
-          <image-frame :img="currImg" class="f-left"></image-frame>
-          <image-frame :img="currImg" class="f-right"></image-frame>
+        <div v-for="(rowImages, index) in flattenImages" class="reward-record__imgs-list__row clear-both" :key="index">
+          <image-frame :img="rowImages[0]" class="f-left"></image-frame>
+          <image-frame v-if="rowImages[1]" :img="rowImages[1]" class="f-right"></image-frame>
         </div>
       </div>
     </block-container>
@@ -40,14 +32,28 @@
 <script>
   import BlockContainer from "../../components/BlockContainer";
   import ImageFrame from "../../components/ImageFrame";
+  import {mapState} from 'vuex';
 
   // Todo 是否需要显示当前用户被打赏的次数以及打赏人的信息？
   export default {
     name: 'RewardRecord',
     components: {ImageFrame, BlockContainer},
-    data() {
-      return {
-        currImg: require('../../assets/images/1.jpg')
+    computed: {
+      ...mapState('user', ['loginUserInfo']),
+      tipTransations() {
+        return this.loginUserInfo.tip_transations;
+      },
+      flattenImages() {
+        const {images} = this.tipTransations;
+        let columns = 2;
+        let rows = Math.ceil(images.length / columns);
+        let result = [];
+
+        for (let i = 0; i < rows; i++) {
+          result.push(images.slice(i * columns, (i + 1) * columns));
+        }
+
+        return result;
       }
     }
   };
@@ -98,7 +104,7 @@
 
     &__imgs-list {
       flex: 1;
-      overflow: hidden auto;
+      overflow: auto;
 
       &__row {
         margin-bottom: 10px;

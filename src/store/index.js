@@ -1,9 +1,11 @@
 import Vuex from 'vuex';
-import {mainPage} from "./mainPage";
+import {mainPage} from "./mainPageStore";
+import {user} from "./userStore";
 
 const storeConfig = {
   modules: {
     mainPage,
+    user
   }
 };
 

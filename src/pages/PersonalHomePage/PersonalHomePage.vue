@@ -2,13 +2,13 @@
   <div class="personal-home">
     <div class="personal-home__header">
       <div class="personal-home__header-title clear-both">
-        <img src="../../assets/images/cha@2x.png"/>
+        <img src="../../assets/images/cha@2x.png" @click="backToMainPage"/>
         HI，{{user.name}}
       </div>
 
       <div class="personal-home__options">
-        <my-button @click="changeHomeOption('info')">个人信息</my-button>
-        <my-button style="margin-left:20px;" :plain="true" @click="changeHomeOption('reward')">打赏记录</my-button>
+        <my-button :plain="!isInfoPage" @click="changeHomeOption(INFO_KEY)">个人信息</my-button>
+        <my-button :plain="isInfoPage" style="margin-left:20px;" @click="changeHomeOption(REWARD_KEY)">打赏记录</my-button>
       </div>
     </div>
 
@@ -26,15 +26,31 @@
     name: 'PersonalHomePage',
     components: {MyButton},
     data() {
+      const INFO_KEY = 'info';
+      const REWARD_KEY = 'reward';
+
       return {
+        INFO_KEY,
+        REWARD_KEY,
         user: {
           name: 'Daisy'
-        }
+        },
+        currPage: INFO_KEY
+      }
+    },
+    computed: {
+      // 当前显示页是否是个人信息页，用于页签切换
+      isInfoPage() {
+        return this.currPage === this.INFO_KEY;
       }
     },
     methods: {
       changeHomeOption(option) {
+        this.currPage = option;
         this.$router.push(`/personalHome/${option}`);
+      },
+      backToMainPage() {
+        this.$router.push('/main');
       }
     }
   };

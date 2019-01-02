@@ -2,12 +2,13 @@
   <div class="not-upload">
     <div class="not-upload__logo">
       <img src="../../../../assets/images/logo2@2x.png"/>
-      <div class="not-upload__logo-slogan">欢迎使用我好看么</div>
+      <div class="not-upload__logo-slogan">欢迎来到我好看么</div>
     </div>
 
     <div class="not-upload__info">
       <div class="not-upload__info-btn">
-        <my-button>上传我的照片</my-button>
+        <input ref="uploadInput" style="display: none;" type="file" accept="image/*" @change="acceptImage"/>
+        <my-button @click="uploadPhoto">上传我的照片</my-button>
       </div>
       <div style="margin-bottom:6px;">
         请尽量使用个人正面人像；
@@ -28,9 +29,32 @@
   /**
    * 未上传照片的个人主页
    */
+  // Todo 在多个组件中都使用了文件上传的功能，但是在尝试将上传组件封装为单个组件时，无法触发上传的功能，不知道是为什么，所以，只能在所有地方拷贝代码，之后再处理这个问题吧。
   export default {
     name: 'NotUploadPhoto',
-    components: {MyButton}
+    components: {MyButton},
+    data() {
+      return {
+        // 上传照片后的回传信息
+        photoInfo: {}
+      }
+    },
+    methods: {
+      uploadPhoto() {
+        const {uploadInput} = this.$refs;
+        uploadInput.click();
+      },
+      acceptImage(e) {
+        let file = e.target.files[0];
+
+        if (file) {
+          this.$store.dispatch('user/uploadImage', file).then(() => {
+            this.$refs.uploadInput.value = '';
+            this.$router.push('/uploadSuccess');
+          });
+        }
+      }
+    }
   };
 </script>
 
@@ -54,13 +78,12 @@
       }
 
       &-slogan {
-        text-align-last: justify;
-        text-align: justify;
-        text-justify: distribute-all-lines; // 这行必加，兼容ie浏览器
+        text-align: center;
         width: 75%;
         font-size: $medium-font-size;
         color: #FFFFFF;
         margin-top: 40px;
+        letter-spacing: 15px;
       }
     }
 

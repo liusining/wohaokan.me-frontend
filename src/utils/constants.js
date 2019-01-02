@@ -10,3 +10,17 @@ export const LOAD_STATUS = {
   // 之前已经授权成功
   SUCCESS: 'success'
 };
+
+/**
+ * 当前图片的加载状态
+ */
+export const IMAGE_LOAD_STATUS = {
+  // 初始化状态
+  INIT: 'init',
+  // 加载中状态
+  LOADING: 'loading',
+  // 加载成功的状态
+  LOADED: 'loaded',
+  // 加载失败的状态
+  ERROR: 'error'
+};

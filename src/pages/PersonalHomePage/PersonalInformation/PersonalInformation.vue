@@ -1,6 +1,6 @@
 <template>
   <div class="personal-info">
-    <uploaded-photo v-if="user.isUploadPhoto"></uploaded-photo>
+    <uploaded-photo v-if="isUploadPhoto"></uploaded-photo>
     <not-upload-photo v-else></not-upload-photo>
   </div>
 </template>
@@ -12,12 +12,11 @@
   export default {
     name: 'PersonalInformation',
     components: {UploadedPhoto, NotUploadPhoto},
-    data() {
-      return {
-        user: {
-          // 是否已经上传照片
-          isUploadPhoto: false
-        }
+    computed: {
+      // 是否已经上传照片
+      isUploadPhoto() {
+        return this.$store.state.user.loginUserInfo.has_image;
+        // return true
       }
     }
   }

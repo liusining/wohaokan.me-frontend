@@ -5,7 +5,9 @@ import {
   RewardDetailPage,
   PersonalHomePage,
   PersonalInformation,
-  RewardRecord
+  RewardRecord,
+  UploadPhotoSuccess,
+  UpdatePersonInfo
 } from '../pages';
 
 const routes = [{
@@ -19,6 +21,18 @@ const routes = [{
   path: '/reward',
   component: RewardDetailPage,
   meta: {title: '打赏一下'}
+}, {
+  path: '/uploadSuccess',
+  component: UploadPhotoSuccess,
+  meta: {title: '上传成功'}
+}, {
+  path: '/uploadSuccess/auth',
+  component: UploadPhotoSuccess,
+  meta: {title: '上传成功'}
+}, {
+  path: '/updateInfo',
+  component: UpdatePersonInfo,
+  meta: {title: '更新资料'}
 }, {
   path: '/personalHome',
   component: PersonalHomePage,

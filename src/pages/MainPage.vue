@@ -13,8 +13,13 @@
       </div>
     </div>
 
-    <div class="main-page__img vertical-align">
-      <img :src="currImage"/>
+    <div class="main-page__img">
+      <div class="main-page__img-list">
+        <img :style="{
+          zIndex: (imagesList.length - index) * 10
+        }" :class="addImageClass(index)" v-for="(img, index) in imagesList" :src="img.url"
+             :key="index"/>
+      </div>
     </div>
     <div ref="btns" class="shadow-btns-container">
       <my-button class="my-button__circle" :plain="true" @click="nextImage"><img
@@ -32,7 +37,7 @@
   import Prompt from "../components/Prompt";
   import {authorization} from "../services/authorization";
   import MyButton from "../components/MyButton";
-  import {LOAD_STATUS} from "../utils/constants";
+  import {LOAD_STATUS, IMAGE_LOAD_STATUS} from "../utils/constants";
   import {EVENT_NAME, eventManager} from "../utils/eventManager";
 
   const PRELOAD_AMOUNT = 20;
@@ -45,7 +50,9 @@
     components: {MyButton, Prompt},
     data() {
       return {
-        currImage: '',
+        preAmount: 3,
+        nextAmount: 3,
+        imagesList: [],
         // 当前下标的位置
         currImageIndex: 0
       }
@@ -54,58 +61,147 @@
       status() {
         return this.$root.status;
       },
+      mainPage() {
+        return this.$store.state.mainPage;
+      },
       mainPageImageList() {
-        return this.$store.state.mainPage.imageList;
+        return [...this.mainPage.imageList];
+      },
+      currImageData() {
+        return this.mainPageImageList[this.currImageIndex];
       }
     },
     methods: {
       // 下一张照片
       nextImage() {
-        this.currImageIndex++;
-        this.getImage();
+        if (this.currImageIndex === this.mainPageImageList.length - 1) {
+          this.$message({
+            type: 'error',
+            message: '已经是最后一张了'
+          });
+        } else {
+          this.currImageIndex++;
+          this.getImageList();
+        }
       },
       // 前一张照片
       preImage() {
-        this.currImageIndex--;
-        this.getImage();
+        if (this.currImageIndex === 0) {
+          this.$message({
+            type: 'error',
+            message: '已经是第一张了'
+          });
+        } else {
+          this.currImageIndex--;
+          this.getImageList();
+        }
       },
-      getImage() {
-        let {currImageIndex, mainPageImageList} = this;
+      getImageList(isInit) {
+        let {preAmount, nextAmount, currImageIndex, mainPageImageList} = this;
         let targetImage = mainPageImageList[currImageIndex];
 
-        // 如果图片少于PRELOAD_AMOUNT指定的值时，则抓取更多的图片
-        if (mainPageImageList.length - currImageIndex <= PRELOAD_AMOUNT && this.status !== LOAD_STATUS.ERROR) {
-          this.getMoreImageList();
+        while (targetImage && targetImage.loadStatus === IMAGE_LOAD_STATUS.ERROR) {
+          targetImage = mainPageImageList[++currImageIndex];
         }
 
-        if (targetImage && targetImage.isLoaded) {
-          this.currImage = targetImage.url;
-        } else {
+        this.currImageIndex = currImageIndex;
+
+        if (!isInit) {
+          // 如果图片少于PRELOAD_AMOUNT指定的值时，则抓取更多的图片
+          if (mainPageImageList.length - currImageIndex <= PRELOAD_AMOUNT && this.status !== LOAD_STATUS.ERROR) {
+            this.getMoreImageList();
+          } else if (this.mainPage.imageLoadingInfo.currLoadedIndex - currImageIndex <= 10) {
+            this.fetchRealImage();
+          }
+        }
+
+        // 图片的状态为：未加载 --> init --> loading -->loaded/error
+        if (!targetImage || targetImage.loadStatus === IMAGE_LOAD_STATUS.INIT || targetImage.loadStatus === IMAGE_LOAD_STATUS.LOADING) {
+          // 如果!targetImage，则是未加载状态，转换为init状态
+          if (!targetImage) {
+            this.getMoreImageList();
+          } else if (targetImage.loadStatus === IMAGE_LOAD_STATUS.INIT && this.mainPage.imageLoadingInfo.isLoadingImage === false) { // 如果为init状态，则转换为loading状态
+            // 如果this.mainPage.isLoadingImage为true，说明正在加载图片URL，则在加载完成后会自动触发一次fetchRealImage，所以无需再次触发。
+            this.fetchRealImage();
+          }
+
           this.$loading.show();
-          eventManager.$on(EVENT_NAME.TARGET_IMAGE_LOADED, (returnIndex, url, error) => {
-            if (error || currImageIndex === returnIndex) {
+
+          // 无论是未加载、init或者loading状态，最终都会自动触发loaded状态
+          eventManager.$on(EVENT_NAME.TARGET_IMAGE_LOADED, (returnIndex, image, error) => {
+            if (currImageIndex === returnIndex) {
               eventManager.$off(EVENT_NAME.TARGET_IMAGE_LOADED);
+              this.$loading.hide();
               if (error) {
                 this.nextImage();
               } else {
-                this.$loading.hide();
-                this.currImage = url;
+                this.getImageList();
               }
             }
           });
+
+        } else {
+          let imagesList = [];
+
+          for (let i = 1; imagesList.length < preAmount && currImageIndex - i >= 0; i++) {
+            targetImage = mainPageImageList[currImageIndex - i];
+            if (targetImage.loadStatus !== IMAGE_LOAD_STATUS.ERROR) {
+              imagesList.push(targetImage);
+            }
+          }
+
+          imagesList.reverse();
+
+          imagesList.push(mainPageImageList[currImageIndex]);
+
+          let nextTargetIndex;
+          for (let i = 1; i <= nextAmount; i++) {
+            targetImage = mainPageImageList[(nextTargetIndex = currImageIndex + i)];
+
+            if (!targetImage || targetImage.loadStatus === IMAGE_LOAD_STATUS.INIT || targetImage.loadStatus === IMAGE_LOAD_STATUS) {
+              break;
+            } else if (targetImage.loadStatus === IMAGE_LOAD_STATUS.ERROR) {
+              continue;
+            }
+
+            imagesList.push(targetImage);
+          }
+
+          this.imagesList = imagesList;
         }
       },
       getMoreImageList() {
-        this.$store.dispatch('mainPage/fetchImageURLList').then((result) => {
+        this.$store.dispatch('mainPage/fetchImageURLList', {
+          shouldLoading: false
+        }).then((result) => {
           if (!result || !result.isLoading) {
-            this.$store.dispatch('mainPage/fetchImages', {
-              amount: 10
-            });
+            this.fetchRealImage();
           }
         });
       },
+      fetchRealImage(amount = 10) {
+        this.$store.dispatch('mainPage/fetchImages', {
+          amount
+        });
+      },
+      addImageClass(index) {
+        const {currImageIndex, preAmount} = this;
+        let imageIndexInArr = Math.min(currImageIndex, preAmount);
+
+        if (index < imageIndexInArr) {
+          return 'main-page__img--pre';
+        } else if (index > imageIndexInArr) {
+          return 'main-page__img--next';
+        }
+      },
       likeYou() {
-        this.$router.push('/reward');
+        const {user_id, url} = this.currImageData;
+        this.$store.dispatch('user/fetchLikeUser', {
+          user_id,
+          url
+        }).then(() => {
+          this.$router.push('/reward');
+        });
       },
       // 进入个人主页
       enterPersonalHomePage() {
@@ -124,26 +220,21 @@
               amount: 1
             });
 
-            this.getImage();
+            this.getImageList();
           });
         } else {
           if (this.status === LOAD_STATUS.AUTH) {
             this.$prompt({
-              content: '授权成功',
+              content: '授权成功，请等待图片加载',
               button: '知道了'
             });
           }
 
-          // Todo 这里的性能比较低，应该是同时加载三次就对了，但是为了防止异步造成的添加图片的乱序，
           // Todo 先简单这样处理，之后再想办法。
           this.$store.dispatch('mainPage/fetchImageURLList').then(() => {
-            this.$store.dispatch('mainPage/fetchImages', {
-              amount: 10
-            });
-
-            this.$store.dispatch('mainPage/fetchImageURLList').then(() => {
-              this.getImage();
-            });
+            this.fetchRealImage(5);
+            this.getImageList(true);
+            this.$store.dispatch('mainPage/fetchImageURLList');
           });
         }
       }
@@ -182,16 +273,34 @@
 
     &__img {
       padding: $common-padding;
-      margin: auto;
       overflow: hidden;
-      text-align: center;
       flex: 1;
+      width: 100%;
+      box-sizing: border-box;
+
+      &-list {
+        vertical-align: middle;
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      &--pre {
+        transform: translate(-1000px, 1000px) rotate(-60deg) !important;
+      }
+
+      &--next {
+        opacity: 0 !important;
+      }
 
       img {
-        vertical-align: middle;
+        border-radius: $border-radius;
+        position: absolute;
         max-width: 100%;
         max-height: 100%;
-        border-radius: $border-radius;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
       }
     }
 

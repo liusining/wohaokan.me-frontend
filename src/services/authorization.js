@@ -1,4 +1,4 @@
-import axios from 'axios';
+import {take} from "./Request";
 
 /**
  * mixin授权
@@ -12,7 +12,7 @@ export function authorization(returnTo = "") {
  * 授权成功后，将mixin返回的code传入后端
  */
 export function saveAuthCode(code) {
-  return axios.post(`/login`, {
+  return take.post(`/login`, {
     code
   }, {
     noAuth: true
