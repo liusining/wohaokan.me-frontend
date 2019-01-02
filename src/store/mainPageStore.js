@@ -53,7 +53,6 @@ export const mainPage = {
         });
       } else {
         commit('setImageLoadingInfo', {
-          currPage: currPage + 1,
           isLoadingImage: true
         });
 
@@ -61,6 +60,13 @@ export const mainPage = {
           commit('setImageLoadingInfo', {
             isLoadingImage: false
           });
+
+          // Todo 防止没有图片返回时，无限的增加page，这只是权宜之计，最终的方式应该是将页数存储在后端
+          if (images.length > 0) {
+            commit('setImageLoadingInfo', {
+              currPage: currPage + 1,
+            });
+          }
 
           commit('setImageList', images.map((image) => {
             return {
