@@ -1,4 +1,4 @@
-import {uploadImage, updateImage, getUser, updateUser, getAuthInfo, getLikeUser} from "../services/user";
+import {uploadImage, updateImage, getUser, updateUser, getAuthInfo, getLikeUser, likeOthers} from "../services/user";
 
 /**
  * 当前登陆用户的信息
@@ -15,7 +15,9 @@ export const user = {
     // 当用户从face++跳转回来之后，会将认证后的信息保存在该对象中
     authInfo: {},
     // 喜欢的用户
-    likeUser: {}
+    likeUser: {},
+    // 打赏支付的url
+    payUrl: ''
   },
   getters: {},
   mutations: {
@@ -42,6 +44,9 @@ export const user = {
     },
     saveLikeUser(state, likeUser) {
       state.likeUser = likeUser;
+    },
+    setPayUrl(state, payUrl) {
+      state.payUrl = payUrl;
     }
   },
   actions: {
@@ -92,8 +97,17 @@ export const user = {
       return getLikeUser(user_id).then(({result}) => {
         commit('saveLikeUser', {
           ...result,
+          user_id,
           url
         });
+      });
+    },
+    // 打赏其他人
+    likeOthers({commit}, user_id) {
+      return likeOthers(user_id).then(({result: {pay_url}}) => {
+        commit('setPayUrl', pay_url);
+
+        return pay_url
       });
     }
   }

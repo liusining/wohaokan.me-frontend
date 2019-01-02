@@ -5,6 +5,7 @@ import PersonalInformation from './PersonalHomePage/PersonalInformation';
 import RewardRecord from './PersonalHomePage/RewardRecord';
 import UploadPhotoSuccess from './PersonalHomePage/PersonalInformation/NotUploadPhoto/UploadPhotoSuccess';
 import UpdatePersonInfo from './PersonalHomePage/PersonalInformation/UpdatePersonInfo';
+import PayPage from './PayPage';
 
 export {
   MainPage,
@@ -13,5 +14,6 @@ export {
   PersonalInformation,
   RewardRecord,
   UploadPhotoSuccess,
-  UpdatePersonInfo
+  UpdatePersonInfo,
+  PayPage
 };

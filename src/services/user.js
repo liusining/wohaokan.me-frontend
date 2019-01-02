@@ -56,3 +56,14 @@ export function getLikeUser(user_id) {
     errorMessage: '获取用户失败'
   })
 }
+
+/**
+ * 打赏其他用户
+ */
+export function likeOthers(user_id) {
+  return take.post('/like_others', {
+    user_id
+  }, {
+    errorMessage: '跳转打赏页失败，请重试'
+  })
+}

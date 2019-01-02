@@ -7,7 +7,8 @@ import {
   PersonalInformation,
   RewardRecord,
   UploadPhotoSuccess,
-  UpdatePersonInfo
+  UpdatePersonInfo,
+  PayPage
 } from '../pages';
 
 const routes = [{
@@ -48,6 +49,10 @@ const routes = [{
     component: RewardRecord,
     meta: {title: '打赏记录'}
   }]
+}, {
+  path: '/pay',
+  component: PayPage,
+  meta: {title: '支付'}
 }];
 
 

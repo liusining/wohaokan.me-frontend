@@ -90,21 +90,25 @@
     methods: {
       // 打赏eos
       reward() {
-        this.isRewardSuccess = true;
-        let clipboard = this.clipboard = this.clipboard || new ClipboardJS('.reward-detail__copy-btn');
-
-        clipboard.on('success', (e) => {
-          this.$prompt({
-            content: 'Mixin ID已复制到剪切板',
-          });
-          e.clearSelection();
+        this.$store.dispatch('user/likeOthers', this.likeUser.user_id).then((payUrl) => {
+          this.$router.push(`/pay?pay_url=${encodeURIComponent(payUrl)}`);
         });
 
-        clipboard.on('error', (e) => {
-          this.$prompt({
-            content: '复制失败，请手动记录',
-          });
-        });
+        // this.isRewardSuccess = true;
+        // let clipboard = this.clipboard = this.clipboard || new ClipboardJS('.reward-detail__copy-btn');
+        //
+        // clipboard.on('success', (e) => {
+        //   this.$prompt({
+        //     content: 'Mixin ID已复制到剪切板',
+        //   });
+        //   e.clearSelection();
+        // });
+        //
+        // clipboard.on('error', (e) => {
+        //   this.$prompt({
+        //     content: '复制失败，请手动记录',
+        //   });
+        // });
       },
       backToHome() {
         this.$router.push('/main');
