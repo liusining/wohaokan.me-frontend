@@ -4,7 +4,8 @@
       <div class="main-page__header__nav">
         <img src="../assets/images/logo@2x.png"/>
         <div>我好看么</div>
-        <img @click="enterPersonalHomePage" src="../assets/images/touxiang.png"/>
+        <img @click="enterPersonalHomePage"
+             :src="loginUserInfo.avatar_url || require('../assets/images/touxiang.png')"/>
       </div>
       <div class="main-page__header__btns">
         <my-button>随便看看</my-button>
@@ -39,6 +40,7 @@
   import MyButton from "../components/MyButton";
   import {LOAD_STATUS, IMAGE_LOAD_STATUS} from "../utils/constants";
   import {EVENT_NAME, eventManager} from "../utils/eventManager";
+  import {mapState} from 'vuex';
 
   const PRELOAD_AMOUNT = 20;
 
@@ -58,14 +60,13 @@
       }
     },
     computed: {
+      ...mapState('user', ['loginUserInfo']),
+      ...mapState('mainPage', ['imageList', 'imageLoadingInfo']),
       status() {
         return this.$root.status;
       },
-      mainPage() {
-        return this.$store.state.mainPage;
-      },
       mainPageImageList() {
-        return [...this.mainPage.imageList];
+        return [...this.imageList];
       },
       currImageData() {
         return this.mainPageImageList[this.currImageIndex];
@@ -110,7 +111,7 @@
           // 如果图片少于PRELOAD_AMOUNT指定的值时，则抓取更多的图片
           if (mainPageImageList.length - currImageIndex <= PRELOAD_AMOUNT && this.status !== LOAD_STATUS.ERROR) {
             this.getMoreImageList();
-          } else if (this.mainPage.imageLoadingInfo.currLoadedIndex - currImageIndex <= 10) {
+          } else if (this.imageLoadingInfo.currLoadedIndex - currImageIndex <= 10) {
             this.fetchRealImage();
           }
         }
@@ -120,8 +121,8 @@
           // 如果!targetImage，则是未加载状态，转换为init状态
           if (!targetImage) {
             this.getMoreImageList();
-          } else if (targetImage.loadStatus === IMAGE_LOAD_STATUS.INIT && this.mainPage.imageLoadingInfo.isLoadingImage === false) { // 如果为init状态，则转换为loading状态
-            // 如果this.mainPage.isLoadingImage为true，说明正在加载图片URL，则在加载完成后会自动触发一次fetchRealImage，所以无需再次触发。
+          } else if (targetImage.loadStatus === IMAGE_LOAD_STATUS.INIT && this.imageLoadingInfo.isLoadingImage === false) { // 如果为init状态，则转换为loading状态
+            // 如果this.imageLoadingInfo.isLoadingImage为true，说明正在加载图片URL，则在加载完成后会自动触发一次fetchRealImage，所以无需再次触发。
             this.fetchRealImage();
           }
 

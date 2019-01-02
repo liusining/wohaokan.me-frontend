@@ -79,11 +79,13 @@
 
         if (search.biz_token) {
           this.$store.dispatch('user/authUserPhoto', search.biz_token).then(() => {
-            this.$message({
-              message: '认证成功'
+            // 认证通过后抓取用户信息
+            this.$store.dispatch('user/getUser').then(() => {
+              this.$message({
+                message: '认证成功'
+              });
+              this.$router.push('/personalHome/info');
             });
-
-            this.$router.push('/personalHome/info')
           }).catch(({unKnowError, result}) => {
             if (!unKnowError) {
               this.$store.commit('user/saveTemporaryUserInfo', result);

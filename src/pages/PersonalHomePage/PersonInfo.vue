@@ -3,40 +3,40 @@
     <div class="person-info__image">
       <input ref="uploadInput" style="display: none;" type="file" accept="image/*" @change="acceptImage"/>
       <my-button v-if="modify" :big="true" @click="uploadPhoto">点击更换照片</my-button>
-      <image-frame :img="loginUserInfo.image"></image-frame>
+      <image-frame :img="currLoginUser.image"></image-frame>
     </div>
 
     <block-container>
-      <photo-info :info="loginUserInfo"/>
+      <photo-info :info="currLoginUser"/>
     </block-container>
 
     <block-container v-if="modify">
       <div class="clear-both person-info__option">
         <span class="f-left">年龄</span>
-        <input class="f-right" v-model="loginUserInfo.age"/>
+        <input class="f-right" v-model="currLoginUser.age"/>
       </div>
     </block-container>
 
     <block-container>
       <div class="clear-both person-info__option">
         <span class="f-left">昵称</span>
-        <input class="f-right" v-if="modify" v-model="loginUserInfo.name"/>
-        <span class="f-right" v-else>{{loginUserInfo.name}}</span>
+        <input class="f-right" v-if="modify" v-model="currLoginUser.name"/>
+        <span class="f-right" v-else>{{currLoginUser.name}}</span>
       </div>
     </block-container>
 
     <block-container v-if="!modify">
       <div class="clear-both person-info__option">
         <span class="f-left">Mixin ID</span>
-        <span class="f-right">{{loginUserInfo.mixin_id}}</span>
+        <span class="f-right">{{currLoginUser.mixin_id}}</span>
       </div>
     </block-container>
 
     <block-container>
       <div class="person-info__option">
         <div style="margin-bottom:6px;">个人简介</div>
-        <textarea v-if="modify" v-model="loginUserInfo.description" rows="2"></textarea>
-        <div v-else>{{loginUserInfo.description}}</div>
+        <textarea v-if="modify" v-model="currLoginUser.description" rows="2"></textarea>
+        <div v-else>{{currLoginUser.description}}</div>
       </div>
     </block-container>
   </div>
@@ -61,6 +61,11 @@
         default: false
       },
     },
+    data() {
+      return {
+        currLoginUser: {}
+      }
+    },
     computed: {
       ...mapState('user', ['loginUserInfo'])
     },
@@ -73,12 +78,9 @@
         let file = e.target.files[0];
 
         if (file) {
-          this.$store.dispatch('user/uploadImage', {
-            image: file,
-            isUpload: false
-          }).then(({beauty, gender, age}) => {
-            this.loginUserInfo = {
-              ...this.loginUserInfo,
+          this.$store.dispatch('user/uploadImage', file).then(({beauty, gender, age}) => {
+            this.currLoginUser = {
+              ...this.currLoginUser,
               image: URL.createObjectURL(file),
               beauty,
               gender,
@@ -94,9 +96,16 @@
       },
       getPersonInfo() {
         return {
-          ...this.loginUserInfo
+          ...this.currLoginUser
         }
       }
+    },
+    created() {
+      // 创建loginUserInfo的副本，这样在本页中的修改就不会影响当前登陆用户真正的信息，
+      // 这样，当前用户取消更新时，数据还是之前的数据，也就是说，在本页中一直在操作副本数据。
+      this.currLoginUser = {
+        ...this.loginUserInfo
+      };
     }
   }
 </script>

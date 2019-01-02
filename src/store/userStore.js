@@ -56,6 +56,8 @@ export const user = {
           ...result,
           url: URL.createObjectURL(image)
         });
+
+        return result;
       });
     },
     updateImage({commit, state}, {

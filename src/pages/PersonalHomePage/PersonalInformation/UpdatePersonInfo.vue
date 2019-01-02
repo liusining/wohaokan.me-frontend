@@ -29,9 +29,13 @@
         const {name, age, description} = personInfo;
 
         this.$store.dispatch('user/updateUser', {name, age, description}).then(() => {
-          this.$store.commit('user/saveUserInfo', {
-            ...this.$store.state.user.loginUserInfo,
-            ...personInfo
+          // 修改完成后重新获取用户信息
+          this.$store.dispatch('user/getUser').then(() => {
+            this.$message({
+              message: '更新成功'
+            });
+
+            this.$router.push('/personalHome/info');
           });
         });
       }

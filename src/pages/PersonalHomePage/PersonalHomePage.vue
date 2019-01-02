@@ -3,7 +3,7 @@
     <div class="personal-home__header">
       <div class="personal-home__header-title clear-both">
         <img src="../../assets/images/cha@2x.png" @click="backToMainPage"/>
-        HI，{{user.name}}
+        HI，{{loginUserInfo.name}}
       </div>
 
       <div class="personal-home__options">
@@ -18,6 +18,7 @@
 
 <script>
   import MyButton from "../../components/MyButton";
+  import {mapState} from 'vuex';
 
   /**
    * 个人主页
@@ -32,21 +33,17 @@
       return {
         INFO_KEY,
         REWARD_KEY,
-        user: {
-          name: 'Daisy'
-        },
-        currPage: INFO_KEY
       }
     },
     computed: {
+      ...mapState('user', ['loginUserInfo']),
       // 当前显示页是否是个人信息页，用于页签切换
       isInfoPage() {
-        return this.currPage === this.INFO_KEY;
+        return this.$route.path.indexOf(this.INFO_KEY) !== -1;
       }
     },
     methods: {
       changeHomeOption(option) {
-        this.currPage = option;
         this.$router.push(`/personalHome/${option}`);
       },
       backToMainPage() {
