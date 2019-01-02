@@ -207,6 +207,12 @@
       enterPersonalHomePage() {
         this.$router.push('/personalHome');
       },
+      // 当首次通过mixin授权时，会在url之后出现code=xxxx形式的查询，
+      // 该方法是为了删除这个查询，防止某些以外情况。比如，当授权成功后，用户直接刷新页面，
+      // 则会当做首次授权（其实，已经授权成功了）而将code发往后端。
+      deleteCodeQueryInUrl() {
+        this.$router.push('/main');
+      },
       promptAndFetchImages() {
         if (this.status === LOAD_STATUS.ERROR) {
           this.$prompt({
@@ -222,12 +228,16 @@
 
             this.getImageList();
           });
+
+          this.deleteCodeQueryInUrl();
         } else {
           if (this.status === LOAD_STATUS.AUTH) {
             this.$prompt({
               content: '授权成功，请等待图片加载',
               button: '知道了'
             });
+
+            this.deleteCodeQueryInUrl();
           }
 
           // Todo 先简单这样处理，之后再想办法。
