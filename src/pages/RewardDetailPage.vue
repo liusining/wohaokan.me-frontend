@@ -82,7 +82,6 @@
         const {isRewardSuccess} = this;
         let prompt = {
           content: isRewardSuccess ? '打赏成功，已将对方名片发送给您' : '打赏失败，请重试',
-          button: '知道了'
         };
 
         this.$prompt(prompt);
@@ -97,7 +96,6 @@
         clipboard.on('success', (e) => {
           this.$prompt({
             content: 'Mixin ID已复制到剪切板',
-            button: '知道了'
           });
           e.clearSelection();
         });
@@ -105,7 +103,6 @@
         clipboard.on('error', (e) => {
           this.$prompt({
             content: '复制失败，请手动记录',
-            button: '知道了'
           });
         });
       },

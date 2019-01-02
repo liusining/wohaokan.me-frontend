@@ -25,7 +25,10 @@
       // 内容的信息
       content: String,
       // 按钮的文本
-      button: String
+      button: {
+        type: String,
+        default: '知道了'
+      }
     },
     methods: {
       hide() {

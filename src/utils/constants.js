@@ -24,3 +24,6 @@ export const IMAGE_LOAD_STATUS = {
   // 加载失败的状态
   ERROR: 'error'
 };
+
+// 照片大小的限制为2M
+export const LIMIT_SIZE_OF_IMAGE = 2 * 1024 * 1024;

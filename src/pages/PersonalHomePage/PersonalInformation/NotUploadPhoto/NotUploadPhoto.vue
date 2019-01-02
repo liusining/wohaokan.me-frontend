@@ -25,6 +25,7 @@
 
 <script>
   import MyButton from "../../../../components/MyButton";
+  import {LIMIT_SIZE_OF_IMAGE} from "../../../../utils/constants";
 
   /**
    * 未上传照片的个人主页
@@ -48,10 +49,16 @@
         let file = e.target.files[0];
 
         if (file) {
-          this.$store.dispatch('user/uploadImage', file).then(() => {
-            this.$refs.uploadInput.value = '';
-            this.$router.push('/uploadSuccess');
-          });
+          if (file.size > LIMIT_SIZE_OF_IMAGE) {
+            this.$prompt({
+              content: '图片过大，不可超过2M',
+            });
+          } else {
+            this.$store.dispatch('user/uploadImage', file).then(() => {
+              this.$refs.uploadInput.value = '';
+              this.$router.push('/uploadSuccess');
+            });
+          }
         }
       }
     }

@@ -48,6 +48,7 @@
   import PhotoInfo from "../../components/PhotoInfo";
   import MyButton from "../../components/MyButton";
   import {mapState} from 'vuex';
+  import {LIMIT_SIZE_OF_IMAGE} from "../../utils/constants";
 
   /**
    * 个人信息的页面，包括个人照片、照片信息、昵称、Mixin ID和个人简介
@@ -78,20 +79,26 @@
         let file = e.target.files[0];
 
         if (file) {
-          this.$store.dispatch('user/uploadImage', file).then(({beauty, gender, age}) => {
-            this.currLoginUser = {
-              ...this.currLoginUser,
-              image: URL.createObjectURL(file),
-              beauty,
-              gender,
-              age
-            };
-
-            this.$refs.uploadInput.value = '';
-            this.$message({
-              message: '照片更换成功'
+          if (file.size > LIMIT_SIZE_OF_IMAGE) {
+            this.$prompt({
+              content: '图片过大，不可超过2M'
             });
-          });
+          } else {
+            this.$store.dispatch('user/uploadImage', file).then(({beauty, gender, age}) => {
+              this.currLoginUser = {
+                ...this.currLoginUser,
+                image: URL.createObjectURL(file),
+                beauty,
+                gender,
+                age
+              };
+
+              this.$refs.uploadInput.value = '';
+              this.$message({
+                message: '照片更换成功'
+              });
+            });
+          }
         }
       },
       getPersonInfo() {

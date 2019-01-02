@@ -4,13 +4,13 @@
       <div class="main-page__header__nav">
         <img src="../assets/images/logo@2x.png"/>
         <div>我好看么</div>
-        <img @click="enterPersonalHomePage"
+        <img style="border-radius: 100%;" @click="enterPersonalHomePage"
              :src="loginUserInfo.avatar_url || require('../assets/images/touxiang.png')"/>
       </div>
       <div class="main-page__header__btns">
-        <my-button>随便看看</my-button>
-        <my-button :plain="true">看看女生</my-button>
-        <my-button :plain="true">翻翻男生</my-button>
+        <my-button @click="currTab = ALL_KEY" :plain="currTab !== ALL_KEY">随便看看</my-button>
+        <my-button @click="currTab = FEMALE_KEY" :plain="currTab !== FEMALE_KEY">看看女生</my-button>
+        <my-button @click="currTab = MALE_KEY" :plain="currTab !== MALE_KEY">翻翻男生</my-button>
       </div>
     </div>
 
@@ -52,11 +52,15 @@
     components: {MyButton, Prompt},
     data() {
       return {
+        ALL_KEY: '',
+        FEMALE_KEY: 'Female',
+        MALE_KEY: 'male',
         preAmount: 3,
         nextAmount: 3,
         imagesList: [],
         // 当前下标的位置
-        currImageIndex: 0
+        currImageIndex: 0,
+        currTab: ''
       }
     },
     computed: {
@@ -70,6 +74,11 @@
       },
       currImageData() {
         return this.mainPageImageList[this.currImageIndex];
+      }
+    },
+    watch: {
+      currTab() {
+        this.restartFetchImage();
       }
     },
     methods: {
@@ -97,7 +106,9 @@
           this.getImageList();
         }
       },
-      getImageList(isInit) {
+      // isNotFetchImmediate表示不立即加载图片，页面初次加载，或者'随便看看'、'看看女生'、'翻翻男生'之间切换时，都会按照如下方式加载图片：
+      // 加载10个url --> 加载前5个真正的图片 同时 加载10个url --> 第一个图片加载完成后 --> 再次加载10个url --> 加载10个真正的图片
+      getImageList(isNotFetchImmediate) {
         let {preAmount, nextAmount, currImageIndex, mainPageImageList} = this;
         let targetImage = mainPageImageList[currImageIndex];
 
@@ -107,7 +118,7 @@
 
         this.currImageIndex = currImageIndex;
 
-        if (!isInit) {
+        if (!isNotFetchImmediate) {
           // 如果图片少于PRELOAD_AMOUNT指定的值时，则抓取更多的图片
           if (mainPageImageList.length - currImageIndex <= PRELOAD_AMOUNT && this.status !== LOAD_STATUS.ERROR) {
             this.getMoreImageList();
@@ -172,7 +183,7 @@
         }
       },
       getMoreImageList() {
-        this.$store.dispatch('mainPage/fetchImageURLList', {
+        this.fetchImageURLList({
           shouldLoading: false
         }).then((result) => {
           if (!result || !result.isLoading) {
@@ -181,9 +192,13 @@
         });
       },
       fetchRealImage(amount = 10) {
-        this.$store.dispatch('mainPage/fetchImages', {
-          amount
-        });
+        let canFetchAmount = this.mainPageImageList.length - this.imageLoadingInfo.currLoadedIndex;
+
+        if ((canFetchAmount > 0)) {
+          this.$store.dispatch('mainPage/fetchRealImages', {
+            amount: Math.min(amount, canFetchAmount)
+          });
+        }
       },
       addImageClass(index) {
         const {currImageIndex, preAmount} = this;
@@ -214,6 +229,26 @@
       deleteCodeQueryInUrl() {
         this.$router.push('/main');
       },
+      // 重新获取所有图片信息
+      restartFetchImage() {
+        this.imagesList = [];
+        this.currImageIndex = 0;
+
+        this.$store.dispatch('mainPage/resetStatus').then(() => {
+          this.fetchImageURLList().then(() => {
+            this.fetchRealImage(5);
+            this.getImageList(true);
+            this.fetchImageURLList();
+          });
+        })
+      },
+      fetchImageURLList(options = {}) {
+        const {currTab} = this;
+        return this.$store.dispatch('mainPage/fetchImageURLList', {
+          ...options,
+          gender: currTab
+        });
+      },
       promptAndFetchImages() {
         if (this.status === LOAD_STATUS.ERROR) {
           this.$prompt({
@@ -222,11 +257,12 @@
             callback: authorization
           });
 
-          this.$store.dispatch('mainPage/fetchImageURLList').then(() => {
-            this.$store.dispatch('mainPage/fetchImages', {
+          this.fetchImageURLList().then(() => {
+            this.$store.dispatch('mainPage/fetchRealImages', {
               amount: 1
             });
 
+            // Todo 授权失败时，此处的处理还有问题
             this.getImageList();
           });
 
@@ -241,12 +277,7 @@
             this.deleteCodeQueryInUrl();
           }
 
-          // Todo 先简单这样处理，之后再想办法。
-          this.$store.dispatch('mainPage/fetchImageURLList').then(() => {
-            this.fetchRealImage(5);
-            this.getImageList(true);
-            this.$store.dispatch('mainPage/fetchImageURLList');
-          });
+          this.restartFetchImage();
         }
       }
     },
