@@ -96,7 +96,8 @@
             message: '已经是最后一张了'
           });
         } else {
-          this.nextImageWithAnimation();
+          this.currImageIndex++;
+          this.getImageList();
         }
       },
       nextImageWithAnimation() {
@@ -144,7 +145,8 @@
             message: '已经是第一张了'
           });
         } else {
-          this.preImageWithAnimation();
+          this.currImageIndex--;
+          this.getImageList();
         }
       },
       preImageWithAnimation() {
