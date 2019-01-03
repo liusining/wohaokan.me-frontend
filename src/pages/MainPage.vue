@@ -64,6 +64,9 @@
         // 当前下标的位置
         currImageIndex: 0,
         currTab: '',
+        // 动画是否正在运行
+        // Todo 其实不应该通过这种方式处理动画，但是为了简单，先这样吧
+        isAnimation: false
       }
     },
     computed: {
@@ -97,6 +100,12 @@
         }
       },
       nextImageWithAnimation() {
+        if (this.isAnimation) {
+          return;
+        }
+
+        this.isAnimation = true;
+
         const {currImageIndex} = this;
         const {images: imagesRef} = this.$refs;
         let currImageDOM = imagesRef[currImageIndex];
@@ -122,6 +131,7 @@
           this.getImageList();
 
           currImageDOM.removeEventListener('transitionend', anCallback);
+          this.isAnimation = false;
         };
 
         currImageDOM.addEventListener('transitionend', anCallback);
@@ -138,6 +148,12 @@
         }
       },
       preImageWithAnimation() {
+        if (this.isAnimation) {
+          return;
+        }
+
+        this.isAnimation = true;
+
         const {currImageIndex} = this;
         const {images: imagesRef} = this.$refs;
         let currImageDOM = imagesRef[currImageIndex];
@@ -156,6 +172,7 @@
           this.getImageList();
 
           currImageDOM.removeEventListener('transitionend', anCallback);
+          this.isAnimation = false;
         };
 
         currImageDOM.classList.add(anClass);
