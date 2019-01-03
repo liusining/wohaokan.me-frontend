@@ -1,4 +1,13 @@
-import {uploadImage, updateImage, getUser, updateUser, getAuthInfo, getLikeUser, likeOthers} from "../services/user";
+import {
+  uploadImage,
+  updateImage,
+  getUser,
+  updateUser,
+  getAuthInfo,
+  getLikeUser,
+  likeOthers,
+  switchDisplay
+} from "../services/user";
 import {checkOrder} from "../services/order";
 
 /**
@@ -55,7 +64,7 @@ export const user = {
     },
     setLikeUserMinID(state, likeUserMinID) {
       state.likeUserMinID = likeUserMinID;
-    }
+    },
   },
   actions: {
     // 获得当前登陆用户信息
@@ -122,11 +131,20 @@ export const user = {
       });
     },
     // 检查订单是否已经支付成功
-    checkOrder({commit},trace_id) {
+    checkOrder({commit}, trace_id) {
       return checkOrder(trace_id).then(({result: {mixin_id}}) => {
         commit('setLikeUserMinID', mixin_id);
 
         return mixin_id;
+      })
+    },
+    switchDisplay({commit}) {
+      return switchDisplay().then(({result: {display_image}}) => {
+        commit('saveUserInfo', {
+          display_image
+        });
+
+        return display_image;
       })
     }
   }

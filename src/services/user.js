@@ -67,3 +67,10 @@ export function likeOthers(user_id) {
     autoError: false
   })
 }
+
+// 更新上架和下架的状态
+export function switchDisplay() {
+  return take.post('/switch_display', {
+    errorMessage: '更新上下架状态失败'
+  })
+}
