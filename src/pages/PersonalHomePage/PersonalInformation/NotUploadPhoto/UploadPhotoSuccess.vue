@@ -30,6 +30,7 @@
   import MyButton from "../../../../components/MyButton";
   import {resolveSearch} from "../../../../utils/browserHelper";
   import {LIMIT_SIZE_OF_IMAGE} from "../../../../utils/constants";
+  import {isEmptyObj} from "../../../../utils/util";
 
   /**
    * 上传照片成功后的界面
@@ -75,39 +76,52 @@
             message: '照片未通过验证，请您重新上传'
           })
         }
+      },
+      checkAuthStatus() {
+        // 当用户从face++跳回后的路径是/uploadSuccess/auth，此时需要从后端获取用户是否识别成功的信息
+        const isAuth = this.$route.path.indexOf('auth') !== -1;
+        if (isAuth) {
+          let search = resolveSearch();
+
+          if (search.biz_token) {
+            this.$store.dispatch('user/authUserPhoto', search.biz_token).then(() => {
+              // 认证通过后抓取用户信息
+              this.$store.dispatch('user/getUser').then(() => {
+                this.$message({
+                  message: '认证成功'
+                });
+                this.$router.push('/personalHome/info');
+              });
+            }).catch(({unKnowError, result}) => {
+              if (!unKnowError) {
+                this.$store.commit('user/saveTemporaryUserInfo', result);
+                this.$prompt({
+                  content: '认证失败，请重试',
+                  button: '知道了'
+                });
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: '获取认证信息失败'
+                })
+              }
+
+              this.$router.push('/uploadSuccess/auth');
+            });
+          }
+        }
       }
     },
-    // Todo 如果是上传成功后直接刷新页面会不显示图片以及其信息
     created() {
-      // 当用户从face++跳回后的路径是/uploadSuccess/auth，此时需要从后端获取用户是否识别成功的信息
-      const isAuth = this.$route.path.indexOf('auth') !== -1;
-      if (isAuth) {
-        let search = resolveSearch();
+      this.checkAuthStatus();
 
-        if (search.biz_token) {
-          this.$store.dispatch('user/authUserPhoto', search.biz_token).then(() => {
-            // 认证通过后抓取用户信息
-            this.$store.dispatch('user/getUser').then(() => {
-              this.$message({
-                message: '认证成功'
-              });
-              this.$router.push('/personalHome/info');
-            });
-          }).catch(({unKnowError, result}) => {
-            if (!unKnowError) {
-              this.$store.commit('user/saveTemporaryUserInfo', result);
-              this.$prompt({
-                content: '认证失败，请重试',
-                button: '知道了'
-              });
-            } else {
-              this.$message({
-                type: 'error',
-                message: '获取认证信息失败'
-              })
-            }
-          });
-        }
+      // Todo 这里只是简单的跳到主页，但是更好的方式应该是从后端获取已上传的照片信息
+      if (isEmptyObj(this.temporaryUserInfo)) {
+        this.$message({
+          type: 'error',
+          message: '未找到已上传照片信息，返回首页'
+        });
+        this.$router.push('/main');
       }
     }
   }

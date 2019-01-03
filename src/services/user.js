@@ -43,7 +43,7 @@ export function updateUser(data) {
  * 获取当前用户是否已经通过face++的认证
  */
 export function getAuthInfo(token) {
-  return take.get(`/get_verify_result?biz_token=${token}`, {
+  return take.get(`/get_verify_result?biz_token=${encodeURIComponent(token)}`, {
     autoError: false
   });
 }

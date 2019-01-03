@@ -282,7 +282,7 @@
 
         this.$store.dispatch('mainPage/resetStatus').then(() => {
           this.fetchImageURLList().then(() => {
-            this.fetchRealImage(5);
+            this.fetchRealImage(2);
             this.getImageList(true);
             this.fetchImageURLList();
           });

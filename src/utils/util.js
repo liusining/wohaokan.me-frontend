@@ -40,3 +40,20 @@ export function clearNull(data) {
     return result;
   }, {}) : {};
 }
+
+/**
+ * 在当前对象上没有任何属性，不包括原型链
+ */
+export function isEmptyObj(obj) {
+  if (typeof obj !== 'object' || obj === null) {
+    return true;
+  }
+
+  for (let i in obj) {
+    if (obj.hasOwnProperty(i)) {
+      return false;
+    }
+  }
+
+  return true;
+}
