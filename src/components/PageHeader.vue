@@ -15,11 +15,16 @@
         type: Boolean,
         default: true
       },
-      title: String
+      title: String,
+      backRouter: String
     },
     methods: {
       back() {
-        this.$router.back();
+        if (this.backRouter) {
+          this.$router.push(this.backRouter);
+        } else {
+          this.$router.back();
+        }
       }
     }
   }

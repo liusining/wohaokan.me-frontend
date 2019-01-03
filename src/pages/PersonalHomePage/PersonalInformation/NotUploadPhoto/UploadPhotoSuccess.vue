@@ -1,6 +1,6 @@
 <template>
   <div class="upload-photo">
-    <page-header title="上传照片"></page-header>
+    <page-header title="上传照片" back-router="/personalHome/info"></page-header>
 
     <div class="upload-photo__info-container">
       <image-frame :img="imageURL"></image-frame>
@@ -80,49 +80,43 @@
       checkAuthStatus() {
         // 当用户从face++跳回后的路径是/uploadSuccess/auth，此时需要从后端获取用户是否识别成功的信息
         const isAuth = this.$route.path.indexOf('auth') !== -1;
-        if (isAuth) {
-          let search = resolveSearch();
-
-          if (search.biz_token) {
-            this.$store.dispatch('user/authUserPhoto', search.biz_token).then(() => {
-              // 认证通过后抓取用户信息
-              this.$store.dispatch('user/getUser').then(() => {
-                this.$message({
-                  message: '认证成功'
-                });
-                this.$router.push('/personalHome/info');
+        let search = resolveSearch();
+        if (isAuth && search.biz_token) {
+          this.$store.dispatch('user/authUserPhoto', search.biz_token).then(() => {
+            // 认证通过后抓取用户信息
+            this.$store.dispatch('user/getUser').then(() => {
+              this.$message({
+                message: '认证成功'
               });
-            }).catch(({unKnowError, result}) => {
-              if (!unKnowError) {
-                this.$store.commit('user/saveTemporaryUserInfo', result);
-                this.$prompt({
-                  content: '认证失败，请重试',
-                  button: '知道了'
-                });
-              } else {
-                this.$message({
-                  type: 'error',
-                  message: '获取认证信息失败'
-                })
-              }
-
-              this.$router.push('/uploadSuccess/auth');
+              this.$router.push('/personalHome/info');
             });
-          }
+          }).catch(({unKnowError, result}) => {
+            if (!unKnowError) {
+              this.$store.commit('user/saveTemporaryUserInfo', result);
+              this.$prompt({
+                content: '认证失败，请重试',
+                button: '知道了'
+              });
+            } else {
+              this.$message({
+                type: 'error',
+                message: '获取认证信息失败'
+              })
+            }
+
+            this.$router.push('/uploadSuccess/auth');
+          });
+        } else if (isEmptyObj(this.temporaryUserInfo)) { // Todo 这里只是简单的跳到主页，但是更好的方式应该是从后端获取已上传的照片信息
+          this.$message({
+            type: 'error',
+            message: '未找到已上传照片信息，返回首页'
+          });
+          this.$router.push('/main');
         }
       }
     },
     created() {
       this.checkAuthStatus();
-
-      // Todo 这里只是简单的跳到主页，但是更好的方式应该是从后端获取已上传的照片信息
-      if (isEmptyObj(this.temporaryUserInfo)) {
-        this.$message({
-          type: 'error',
-          message: '未找到已上传照片信息，返回首页'
-        });
-        this.$router.push('/main');
-      }
     }
   }
 </script>
