@@ -17,5 +17,5 @@ export function initMessage(Vue) {
 }
 
 export function showMessage(type, message) {
-  msg.show(type, message);
+  msg && msg.show(type, message);
 }

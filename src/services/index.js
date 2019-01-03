@@ -38,8 +38,9 @@ config({
 });
 
 axios.defaults.baseURL = getPath();
-axios.defaults.withCredentials = true;
 axios.interceptors.request.use(function (config) {
+  config.withCredentials = typeof config.withCredentials === 'boolean' ? config.withCredentials : true;
+
   if (!config.noAuth) {
     config.headers = {
       ...(config.headers || {}),

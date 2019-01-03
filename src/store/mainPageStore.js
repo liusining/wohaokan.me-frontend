@@ -1,6 +1,7 @@
 import {fetchImages} from "../services/images";
 import {EVENT_NAME, eventManager} from "../utils/eventManager";
 import {IMAGE_LOAD_STATUS} from "../utils/constants";
+import {getUUID, updateUUID} from "./UUIDContainer";
 
 const defaultImageLoadingInfo = {
   // 当前加载的图片的页数
@@ -17,10 +18,6 @@ const defaultImageLoadingInfo = {
 export const mainPage = {
   namespaced: true,
   state: {
-    // Todo uuid的问题还没解决
-    // 用于唯一标识一次镜像，当获取的图片类型改变后（在随便看看、看看女生和翻翻男生之间切换），需要防止之前的数据对本次有影响，需要
-    // 删除某些无用的结果
-    uuid: 0,
     // 主页显示的图片列表
     imageList: [],
     imageLoadingInfo: {
@@ -29,9 +26,6 @@ export const mainPage = {
   },
   getters: {},
   mutations: {
-    setUUID(state) {
-      state.uuid = state.uuid + 1;
-    },
     setImageLoadingInfo(state, info) {
       state.imageLoadingInfo = {
         ...state.imageLoadingInfo,
@@ -56,7 +50,7 @@ export const mainPage = {
      * 重置图片列表的状态
      */
     resetStatus({commit}) {
-      commit('setUUID');
+      updateUUID();
 
       commit('setImageList', {
         append: false
@@ -75,7 +69,8 @@ export const mainPage = {
      * @param gender
      */
     fetchImageURLList({state, commit}, {shouldLoading, gender} = {}) {
-      const {imageLoadingInfo: {isLoadingImage, currPage}, uuid} = state;
+      const {imageLoadingInfo: {isLoadingImage, currPage}} = state;
+      const uuid = getUUID();
 
       if (isLoadingImage) {
         return Promise.resolve({
@@ -91,12 +86,10 @@ export const mainPage = {
           gender
         }, shouldLoading).then(({result: {images}}) => {
           // Todo 对于ajax请求，最好的取消方式应该使用axios的Cancellation
-          const {uuid: currUUID} = state;
-
-          console.log(`pre uuid: ${uuid} ----- cur UUID: ${currUUID}`);
+          const currUUID = getUUID();
 
           if (currUUID !== uuid) {
-            return;
+            return Promise.reject();
           }
 
           commit('setImageLoadingInfo', {
@@ -131,8 +124,10 @@ export const mainPage = {
      * @param amount
      */
     fetchRealImages({state, commit, dispatch}, {amount}) {
-      const {imageLoadingInfo, uuid} = state;
+      const {imageLoadingInfo} = state;
       const {currLoadedIndex} = imageLoadingInfo;
+
+      const uuid = getUUID();
 
       commit('setImageLoadingInfo', {
         currLoadedIndex: currLoadedIndex + amount
@@ -160,9 +155,13 @@ export const mainPage = {
           });
         } else {
           imageOb.onload = function () {
-            const {uuid: currUUID} = state;
+            const currUUID = getUUID();
 
             if (currUUID !== uuid) {
+              dispatch('fetchImagesAbort', {
+                index,
+                uuid
+              });
               return;
             }
 
@@ -176,9 +175,13 @@ export const mainPage = {
           };
 
           imageOb.onerror = function () {
-            const {uuid: currUUID} = state;
+            const currUUID = getUUID();
 
             if (currUUID !== uuid) {
+              dispatch('fetchImagesAbort', {
+                index,
+                uuid
+              });
               return;
             }
 
@@ -192,9 +195,13 @@ export const mainPage = {
 
           // 图片超时十秒后自动标记为失败
           timeoutId = setTimeout(() => {
-            const {uuid: currUUID} = state;
+            const currUUID = getUUID();
 
             if (currUUID !== uuid) {
+              dispatch('fetchImagesAbort', {
+                index,
+                uuid
+              });
               return;
             }
 
@@ -205,6 +212,18 @@ export const mainPage = {
           }, 100000);
         }
       });
+    },
+    /**
+     * 取消uuid对应的镜像的事件监听
+     * @param uuid
+     * @param index
+     */
+    fetchImagesAbort({}, {uuid, index}) {
+      eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, {
+        abort: true,
+        uuid,
+        returnIndex: index
+      })
     },
     /**
      * 抓取真实图片成功后的回调函数
@@ -218,7 +237,11 @@ export const mainPage = {
         index,
         loadStatus: IMAGE_LOAD_STATUS.LOADED
       });
-      eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, index, image, false)
+      eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, {
+        returnIndex: index,
+        image,
+        error: false
+      })
     },
     /**
      * 抓取真实图片失败后的回调函数
@@ -231,7 +254,10 @@ export const mainPage = {
         index,
         loadStatus: IMAGE_LOAD_STATUS.ERROR
       });
-      eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, index, '', true);
+      eventManager.$emit(EVENT_NAME.TARGET_IMAGE_LOADED, {
+        returnIndex: index,
+        error: true
+      });
     }
   }
 };

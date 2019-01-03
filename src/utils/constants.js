@@ -27,3 +27,10 @@ export const IMAGE_LOAD_STATUS = {
 
 // 照片大小的限制为2M
 export const LIMIT_SIZE_OF_IMAGE = 2 * 1024 * 1024;
+
+// 支付状态
+export const PAY_STATUS = {
+  NON_PAY: 'nonPay', // 未支付
+  PAY_SUCCESS: 'paySuccess', // 支付成功
+  PAY_DEFEAT: 'payDefeat' // 支付失败
+};

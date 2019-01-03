@@ -48,28 +48,37 @@ Request.prototype.request = function (config) {
       Request.loading(false);
     }
 
-    let data = response.data;
-    if (data.status === 200) {
-      resolveFn({
-        ...data,
-        rawResponse: response
-      });
+    if (config.raw) {
+      resolveFn(response);
     } else {
-      rejectFn({
-        ...data,
-        rawError: response
-      });
+      let data = response.data;
+      if (data.status === 200) {
+        resolveFn({
+          ...data,
+          rawResponse: response
+        });
+      } else {
+        rejectFn({
+          ...data,
+          rawError: response
+        });
+      }
     }
+
   }).catch((error) => {
     Request.loading(false);
 
-    let data = (error && error.response && error.response.data) || {};
+    if (config.raw) {
+      rejectFn(error);
+    } else {
+      let data = (error && error.response && error.response.data) || {};
 
-    rejectFn({
-      unKnowError: true,
-      ...data,
-      rawError: error
-    });
+      rejectFn({
+        unKnowError: true,
+        ...data,
+        rawError: error
+      });
+    }
   });
 
   return resultPromise;

@@ -41,8 +41,12 @@
   import {LOAD_STATUS, IMAGE_LOAD_STATUS} from "../utils/constants";
   import {EVENT_NAME, eventManager} from "../utils/eventManager";
   import {mapState} from 'vuex';
+  import {getUUID} from "../store/UUIDContainer";
 
   const PRELOAD_AMOUNT = 20;
+
+  // 图片加载回调函数的容器，其中键是对应回调函数的镜像uuid
+  let imageLoadCallbackContainer = {};
 
   /**
    * 首页
@@ -54,13 +58,13 @@
       return {
         ALL_KEY: '',
         FEMALE_KEY: 'Female',
-        MALE_KEY: 'male',
+        MALE_KEY: 'Male',
         preAmount: 3,
         nextAmount: 3,
         imagesList: [],
         // 当前下标的位置
         currImageIndex: 0,
-        currTab: ''
+        currTab: '',
       }
     },
     computed: {
@@ -106,6 +110,18 @@
           this.getImageList();
         }
       },
+      onImageLoadEvent(mirrorUUID, callback) {
+        imageLoadCallbackContainer[mirrorUUID] = callback;
+
+        eventManager.$on(EVENT_NAME.TARGET_IMAGE_LOADED, callback);
+      },
+      offImageLoadEvent(mirrorUUID) {
+        const callback = imageLoadCallbackContainer[mirrorUUID];
+
+        delete imageLoadCallbackContainer[mirrorUUID];
+
+        eventManager.$off(EVENT_NAME.TARGET_IMAGE_LOADED, callback);
+      },
       // isNotFetchImmediate表示不立即加载图片，页面初次加载，或者'随便看看'、'看看女生'、'翻翻男生'之间切换时，都会按照如下方式加载图片：
       // 加载10个url --> 加载前5个真正的图片 同时 加载10个url --> 第一个图片加载完成后 --> 再次加载10个url --> 加载10个真正的图片
       getImageList(isNotFetchImmediate) {
@@ -139,10 +155,22 @@
 
           this.$loading.show();
 
+          const mirrorUUID = getUUID();
+
           // 无论是未加载、init或者loading状态，最终都会自动触发loaded状态
-          eventManager.$on(EVENT_NAME.TARGET_IMAGE_LOADED, (returnIndex, image, error) => {
+          this.onImageLoadEvent(mirrorUUID, ({returnIndex, image, error, abort, uuid}) => {
+            // 如果当前状态为禁止，并且镜像uuid和当前返回的uuid相同，则直接
+            if (abort && uuid === mirrorUUID) {
+              if (currImageIndex === returnIndex) {
+                this.$loading.hide();
+              }
+
+              this.offImageLoadEvent(mirrorUUID);
+              return;
+            }
+
             if (currImageIndex === returnIndex) {
-              eventManager.$off(EVENT_NAME.TARGET_IMAGE_LOADED);
+              this.offImageLoadEvent(mirrorUUID);
               this.$loading.hide();
               if (error) {
                 this.nextImage();
@@ -151,6 +179,24 @@
               }
             }
           });
+
+          // eventManager.$on(EVENT_NAME.TARGET_IMAGE_LOADED, ({returnIndex, image, error, abort, uuid}) => {
+          //   // 如果当前状态为禁止，并且镜像uuid和当前返回的uuid相同，则直接
+          //   if (abort && uuid === mirrorUUID) {
+          //     eventManager.$off(EVENT_NAME.TARGET_IMAGE_LOADED);
+          //     return;
+          //   }
+          //
+          //   if (currImageIndex === returnIndex) {
+          //     eventManager.$off(EVENT_NAME.TARGET_IMAGE_LOADED);
+          //     this.$loading.hide();
+          //     if (error) {
+          //       this.nextImage();
+          //     } else {
+          //       this.getImageList();
+          //     }
+          //   }
+          // });
 
         } else {
           let imagesList = [];

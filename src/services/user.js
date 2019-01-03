@@ -64,6 +64,6 @@ export function likeOthers(user_id) {
   return take.post('/like_others', {
     user_id
   }, {
-    errorMessage: '跳转打赏页失败，请重试'
+    autoError: false
   })
 }
