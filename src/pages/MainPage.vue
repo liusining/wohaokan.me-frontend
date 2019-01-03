@@ -16,10 +16,9 @@
 
     <div class="main-page__img">
       <div class="main-page__img-list">
-        <img :style="{
-          zIndex: (imagesList.length - index) * 10
-        }" :class="addImageClass(index)" v-for="(img, index) in imagesList" :src="img.url"
-             :key="index"/>
+        <img ref="images" v-for="(img, index) in imagesList" :key="index" :style="{
+            zIndex: (imagesList.length - index) * 10
+          }" :class="addImageClass(index)" :src="img.url"/>
       </div>
     </div>
     <div ref="btns" class="shadow-btns-container">
@@ -94,9 +93,38 @@
             message: '已经是最后一张了'
           });
         } else {
+          this.nextImageWithAnimation();
+        }
+      },
+      nextImageWithAnimation() {
+        const {currImageIndex} = this;
+        const {images: imagesRef} = this.$refs;
+        let currImageDOM = imagesRef[currImageIndex];
+        let nextImageDOM = imagesRef[currImageIndex + 1];
+
+        // Todo 直接操作DOM是不对的，应该通过Vue的方式，没想到好方法，先这样
+        let anClass = 'main-page__img--animation';
+        let currClass = 'main-page__img--pre';
+        let nextClass = 'main-page__img--next__show';
+
+        currImageDOM.classList.add(anClass);
+        currImageDOM.classList.add(currClass);
+        nextImageDOM.classList.add(anClass);
+        nextImageDOM.classList.add(nextClass);
+
+        let anCallback = () => {
+          currImageDOM.classList.remove(currClass);
+          nextImageDOM.classList.remove(nextClass);
+          currImageDOM.classList.remove(anClass);
+          nextImageDOM.classList.remove(anClass);
+
           this.currImageIndex++;
           this.getImageList();
-        }
+
+          currImageDOM.removeEventListener('transitionend', anCallback);
+        };
+
+        currImageDOM.addEventListener('transitionend', anCallback);
       },
       // 前一张照片
       preImage() {
@@ -106,9 +134,37 @@
             message: '已经是第一张了'
           });
         } else {
+          this.preImageWithAnimation();
+        }
+      },
+      preImageWithAnimation() {
+        const {currImageIndex} = this;
+        const {images: imagesRef} = this.$refs;
+        let currImageDOM = imagesRef[currImageIndex];
+        let preImageDOM = imagesRef[currImageIndex - 1];
+
+        // Todo 直接操作DOM是不对的，应该通过Vue的方式，没想到好方法，先这样
+        let anClass = 'main-page__img--animation';
+        let currClass = 'main-page__img--next';
+        let preClass = 'main-page__img--pre';
+
+        let anCallback = () => {
+          currImageDOM.classList.remove(anClass);
+          preImageDOM.classList.remove(anClass);
+
           this.currImageIndex--;
           this.getImageList();
-        }
+
+          currImageDOM.removeEventListener('transitionend', anCallback);
+        };
+
+        currImageDOM.classList.add(anClass);
+        currImageDOM.classList.add(currClass);
+        preImageDOM.classList.add(anClass);
+        preImageDOM.classList.remove(preClass);
+
+
+        currImageDOM.addEventListener('transitionend', anCallback);
       },
       onImageLoadEvent(mirrorUUID, callback) {
         imageLoadCallbackContainer[mirrorUUID] = callback;
@@ -179,24 +235,6 @@
               }
             }
           });
-
-          // eventManager.$on(EVENT_NAME.TARGET_IMAGE_LOADED, ({returnIndex, image, error, abort, uuid}) => {
-          //   // 如果当前状态为禁止，并且镜像uuid和当前返回的uuid相同，则直接
-          //   if (abort && uuid === mirrorUUID) {
-          //     eventManager.$off(EVENT_NAME.TARGET_IMAGE_LOADED);
-          //     return;
-          //   }
-          //
-          //   if (currImageIndex === returnIndex) {
-          //     eventManager.$off(EVENT_NAME.TARGET_IMAGE_LOADED);
-          //     this.$loading.hide();
-          //     if (error) {
-          //       this.nextImage();
-          //     } else {
-          //       this.getImageList();
-          //     }
-          //   }
-          // });
 
         } else {
           let imagesList = [];
@@ -379,6 +417,16 @@
 
       &--next {
         opacity: 0 !important;
+      }
+
+      &--next__show {
+        opacity: 1 !important;
+      }
+
+      &--animation {
+        transition: all 0.5s;
+        transform: translate3d(0, 0, 0);
+        z-index: 50;
       }
 
       img {

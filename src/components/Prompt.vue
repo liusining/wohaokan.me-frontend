@@ -63,7 +63,6 @@
       position: absolute;
       bottom: 0;
       left: 0;
-      z-index: 20;
       width: 100%;
       border-radius: $border-radius $border-radius 0 0;
     }
