@@ -33,7 +33,10 @@ const webpackDist = webpackMerge(webpackBase, {
   output: {
     filename: "js/[name].[chunkhash].js"
   },
-  plugins
+  plugins,
+  optimization: {
+    runtimeChunk: true
+  }
 });
 
 function clean(cb) {

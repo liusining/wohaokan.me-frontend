@@ -13,6 +13,7 @@ module.exports = {
     publicPath: '/'
   },
   module: {
+    noParse: /^(vue|vuex|vue-router|axios|clipboard|qs)$/,
     rules: [{
       test: /\.vue?$/,
       include: [
