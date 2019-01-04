@@ -49,6 +49,7 @@
   import MyButton from "../../components/MyButton";
   import {mapState} from 'vuex';
   import {LIMIT_SIZE_OF_IMAGE} from "../../utils/constants";
+  import {updateImage} from "../../services/user";
 
   /**
    * 个人信息的页面，包括个人照片、照片信息、昵称、Mixin ID和个人简介
@@ -84,7 +85,7 @@
               content: '图片过大，不可超过2M'
             });
           } else {
-            this.$store.dispatch('user/uploadImage', file).then(({beauty, gender, age}) => {
+            updateImage(file).then(({result: {beauty, gender, age}}) => {
               this.currLoginUser = {
                 ...this.currLoginUser,
                 image: URL.createObjectURL(file),
@@ -153,6 +154,7 @@
 
     textarea {
       resize: none;
+      width: 100%;
     }
   }
 </style>

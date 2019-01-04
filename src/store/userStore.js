@@ -1,6 +1,5 @@
 import {
   uploadImage,
-  updateImage,
   getUser,
   updateUser,
   getAuthInfo,
@@ -80,20 +79,6 @@ export const user = {
           ...result,
           url: URL.createObjectURL(image)
         });
-
-        return result;
-      });
-    },
-    // 认证通过之后更新照片
-    updateImage({commit, state}, {
-      image,
-      isUpload
-    }) {
-      return (isUpload ? uploadImage(image) : updateImage(image)).then(({result}) => {
-        // Todo 不应该保存吧？
-        commit('saveLocalPhotoInfo', image);
-
-        commit('saveUserInfo', result);
 
         return result;
       });
