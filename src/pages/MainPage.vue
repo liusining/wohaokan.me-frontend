@@ -435,7 +435,7 @@
       }
 
       &--next {
-        opacity: 0 !important;
+        display: none;
       }
 
       &--next__show {
