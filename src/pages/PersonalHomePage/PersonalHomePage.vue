@@ -3,7 +3,7 @@
     <div class="personal-home__header">
       <div class="personal-home__header-title clear-both">
         <img src="../../assets/images/cha@2x.png" @click="backToMainPage"/>
-        HI，{{loginUserInfo.name}}
+        Hi，{{loginUserInfo.name}}
       </div>
 
       <div class="personal-home__options">
