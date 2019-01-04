@@ -42,3 +42,14 @@ export function browserBox() {
     height: pageHeight
   };
 }
+
+export function onReady(fn) {
+  let readyState = document.readyState;
+
+  if (readyState === 'interactive' || readyState === 'complete') {
+    fn()
+  } else {
+    window.addEventListener("DOMContentLoaded", fn);
+  }
+
+}

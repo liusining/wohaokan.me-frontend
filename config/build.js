@@ -9,7 +9,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const isStage = process.env.NODE_ENV === 'stage';
-
+// 是否是生产环境
+const isProduction = process.env.NODE_ENV === 'production';
+const shouldUpload = process.env.UPLOAD === 'upload';
 const isBundle = process.env.BUNDLE === 'bundle';
 
 let plugins = [
@@ -62,14 +64,21 @@ function pack(cb) {
   });
 }
 
-function upload(cb) {
+function uploadStage(cb) {
   shell.exec("rsync -e ssh -avz -r -P ../dist/ ubuntu@stg.wohaokan.me:/home/ubuntu/stg.wohaokan.me/frontend");
   cb();
 }
 
+function uploadProduction(cb) {
+  shell.exec("rsync -e ssh -avz -r -P ../dist/ ubuntu@wohaokan.me:/home/ubuntu/wohaokan.me/frontend");
+  cb();
+}
+
 let arr = [clean, pack];
-if (isStage) {
-  arr.push(upload);
+if (isStage && shouldUpload) {
+  arr.push(uploadStage);
+} else if (isProduction && shouldUpload) {
+  arr.push(uploadProduction);
 }
 
 gulp.task('build', gulp.series(...arr));

@@ -67,6 +67,8 @@ module.exports = {
   plugins: [
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
+      minify: isProduction,
+      inject: isProduction ? 'head' : 'body',
       filename: path.resolve(__dirname, '../dist/index.html'),
       template: path.resolve(__dirname, '../index.html')
     })

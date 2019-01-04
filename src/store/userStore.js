@@ -17,8 +17,6 @@ export const user = {
   state: {
     // 登陆的用户信息
     loginUserInfo: null,
-    // 已上传的本地照片
-    localUploadedPhoto: null,
     // 临时用户信息，用于存储首次上传照片时的信息
     temporaryUserInfo: {},
     // 当用户从face++跳转回来之后，会将认证后的信息保存在该对象中
@@ -32,9 +30,6 @@ export const user = {
   },
   getters: {},
   mutations: {
-    saveLocalPhotoInfo(state, image) {
-      state.localUploadedPhoto = image;
-    },
     saveUserInfo(state, userInfo) {
       state.loginUserInfo = {
         ...state.loginUserInfo,

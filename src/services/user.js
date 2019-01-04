@@ -1,11 +1,25 @@
 import {take} from "./Request";
 
 /**
+ * 授权成功后，将mixin返回的code传入后端
+ */
+export function saveAuthCode(code) {
+  return take.post(`/login`, {
+    code
+  }, {
+    // 是否不需要添加X-Session-Key头
+    noAuth: true,
+    shouldLoading: false
+  });
+}
+
+/**
  * 获取当前登陆用户的信息
  */
-export function getUser() {
+export function getUser(shouldLoading = true) {
   return take.get('/get_user', {
-    errorMessage: '获取用户信息失败'
+    errorMessage: '获取用户信息失败',
+    shouldLoading
   });
 }
 

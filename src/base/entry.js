@@ -1,25 +1,19 @@
-import {isAuth, saveAuth} from "../utils/authorizationHelper";
-import {authorization, saveAuthCode} from "../services/authorization";
-import {resolveSearch} from "../utils/browserHelper";
+
+import {saveAuth} from "../utils/authorizationHelper";
+import {saveAuthCode} from "../services/user";
 import {LOAD_STATUS} from "../utils/constants";
 import {initLoading, hideLoading} from "./loading";
+import {initRoot} from "./bootstrap";
+import {onReady} from "../utils/browserHelper";
+import './services';
 
-const search = resolveSearch();
+export function entry(code, error) {
+  let promise = (code ? saveAuthCode(code) : Promise.resolve());
 
-document.addEventListener('DOMContentLoaded', function () {
-  initLoading();
+  onReady(() => {
+    initLoading();
 
-  const {code, error} = search;
-  // 如果已经授权，或授权成功，或授权失败时，都会进入主页
-  if (code || isAuth() || error) {
-    let promiseList = [import('./bootstrap')];
-    // let promiseList = [];
-
-    if (code) {
-      promiseList.push(saveAuthCode(code));
-    }
-
-    Promise.all(promiseList).then(([{initRoot}, data]) => {
+    promise.then((data) => {
       hideLoading(true);
 
       if (data) {
@@ -28,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       let currState;
 
-      if (error || (data && data.status !== 200)) {
+      if (error) {
         currState = LOAD_STATUS.ERROR;
       } else if (code) {
         currState = LOAD_STATUS.AUTH;
@@ -37,8 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       initRoot(currState);
+
     });
-  } else {
-    authorization();
-  }
-});
+  });
+}

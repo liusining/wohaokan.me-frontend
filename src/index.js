@@ -1,4 +1,1 @@
-import 'normalize.css';
-import './styles';
-import './base/entry';
-import './services';
+import './base/checkAuth';

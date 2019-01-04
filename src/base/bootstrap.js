@@ -1,3 +1,5 @@
+import 'normalize.css';
+import '../styles';
 import Vue from 'vue';
 import {initRouter} from "../router";
 import {initStore} from "../store";
@@ -12,18 +14,23 @@ let rootVue;
 /**
  * 初始化界面
  */
-export function initRoot(status) {
+export function initRoot(status, userInfo) {
   configVue(Vue);
   initPrompt(Vue);
   initMessage(Vue);
   initToVue(Vue);
 
+  let store = initStore(Vue);
+  store.commit('user/saveUserInfo', userInfo);
+
+  let router = initRouter(Vue);
+
   rootVue = new Vue({
     data: {
       status
     },
-    router: initRouter(Vue),
-    store: initStore(Vue),
+    router,
+    store,
     template: `
       <div id="root">
         <keep-alive include="MainPage">
