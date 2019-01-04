@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "webpack-dev-server --open --hot --inline --config config/webpack.dev.config.js",
     "stage": "cross-env NODE_ENV=stage gulp build --gulpfile config/build.js",
-    "build": "cross-env NODE_ENV=production gulp build --gulpfile config/build.js"
+    "build": "cross-env NODE_ENV=production gulp build --gulpfile config/build.js",
+    "bundle": "cross-env NODE_ENV=production BUNDLE=bundle gulp build --gulpfile config/build.js"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",

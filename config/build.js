@@ -2,13 +2,30 @@ const {distRoot, entryFile} = require('./config');
 const gulp = require('gulp');
 const webpackBase = require('./webpack.base.config');
 const webpack = require('webpack');
-const gulpSequence = require('gulp-sequence');
 const del = require('del');
 const webpackMerge = require('webpack-merge');
 const shell = require('shelljs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const isStage = process.env.NODE_ENV === 'stage';
+
+const isBundle = process.env.BUNDLE === 'bundle';
+
+let plugins = [
+  new webpack.DefinePlugin({
+    'process.env': {
+      NODE_ENV: JSON.stringify(process.env.NODE_ENV)
+    }
+  }),
+  new MiniCssExtractPlugin({
+    filename: `styles/[name].[contenthash].css`,
+  })
+];
+
+if (isBundle) {
+  plugins.push(new BundleAnalyzerPlugin());
+}
 
 const webpackDist = webpackMerge(webpackBase, {
   entry: `../${entryFile}`,
@@ -16,16 +33,7 @@ const webpackDist = webpackMerge(webpackBase, {
   output: {
     filename: "js/[name].[chunkhash].js"
   },
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify(process.env.NODE_ENV)
-      }
-    }),
-    new MiniCssExtractPlugin({
-      filename: `styles/[name].[contenthash].css`,
-    })
-  ]
+  plugins
 });
 
 function clean(cb) {

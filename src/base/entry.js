@@ -1,7 +1,6 @@
 import {isAuth, saveAuth} from "../utils/authorizationHelper";
 import {authorization, saveAuthCode} from "../services/authorization";
 import {resolveSearch} from "../utils/browserHelper";
-import {initRoot} from "./bootstrap";
 import {LOAD_STATUS} from "../utils/constants";
 import {initLoading, hideLoading} from "./loading";
 
