@@ -17,7 +17,6 @@
     <block-container class="reward-record__imgs-container">
       <div class="reward-record__list-title">
         <span>已经打赏 {{tipTransations.count}} 人</span>
-        <span>（{{tipTransations.to_boy}}位小哥哥，{{tipTransations.to_girl}}位小姐姐）</span>
       </div>
       <div class="reward-record__imgs-list">
         <div v-for="(rowImages, index) in flattenImages" class="reward-record__imgs-list__row clear-both" :key="index">
